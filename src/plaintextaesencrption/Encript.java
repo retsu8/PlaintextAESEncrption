@@ -65,7 +65,45 @@ public class Encript {
          }
 
         return state;
-         } 
+    }
+    private static String[] rotateWord(String[] input) {
+        String[] tmp = new String[input.length];
+        tmp[0] = input[1];
+        tmp[1] = input[2];
+        tmp[2] = input[3];
+        tmp[3] = input[0];
+
+       return tmp;
+    }
+    private static byte[][] generateSubkeys(byte[] key) {
+        byte [] [] tmp = new  byte [Nb * (Nr + 1 )] [ 4 ];
+
+       you  i = 0 ;
+        while (i < Nk) {
+
+       tmp[i][0] = key[i * 4];
+        tmp[i][1] = key[i * 4 + 1];
+        tmp[i][2] = key[i * 4 + 2];
+        tmp[i][3] = key[i * 4 + 3];
+        i++;
+        }
+        i = Nk;
+        while (i < Nb * (Nr + 1)) {
+        byte[] temp = new byte[4];
+        for(int k = 0;k<4;k++)
+        temp[k] = tmp[i-1][k];
+        if (i % Nk == 0) {
+        temp = SubWord(rotateWord(temp)); //effettua lo xor con Rcon
+        temp[0] = (byte) (temp[0] ^ (Rcon[i / Nk] & 0xff));
+        } else if (Nk > 6 && i % Nk == 4) {
+        temp = SubWord(temp);
+        }
+        tmp[i] = xor_func(tmp[i - Nk], temp);
+        i++;
+        }
+
+       return tmp;
+        }
     private static String[][] buildMatrix(String[] plaintext) {
         String[][] AESmatrix = new String[4][4];
         int i = 0;
