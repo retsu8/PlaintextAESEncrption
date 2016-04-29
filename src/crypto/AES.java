@@ -109,128 +109,124 @@ byte[][] tmp = new byte[state.length][state[0].length];
 for (int c = 0; c < Nb; c++) {
     for (int l = 0; l < 4; l++)
         tmp[l] = (byte)(state[l] ^ w[round * Nb + c][l]);
- }
+}
  
 return tmp;
- }
+}
  
- private static byte[][] SubBytes(byte[][] state) {
+private static byte[][] SubBytes(byte[][] state) {
  
 byte[][] tmp = new byte[state.length][state[0].length];
- for (int row = 0; row < 4; row++)
- for (int col = 0; col < Nb; col++)
- tmp[row][col] = (byte) (sbox[(state[row][col] & 0x000000ff)] & 0xff);
+for (int row = 0; row < 4; row++)
+    for (int col = 0; col < Nb; col++)
+        tmp[row][col] = (byte) (sbox[(state[row][col] & 0x000000ff)] & 0xff);
  
 return tmp;
- }
+}
  
- private static byte[][] ShiftRows(byte[][] state) {
+private static byte[][] ShiftRows(byte[][] state) {
  
 byte[] t = new byte[4];
  for (int r = 1; r < 4; r++) {
- for (int c = 0; c < Nb; c++)
- t = state[r][(c + r) % Nb];
- for (int c = 0; c < Nb; c++)
- state[r] = t;
+    for (int c = 0; c < Nb; c++)
+        t = state[r][(c + r) % Nb];
+    for (int c = 0; c < Nb; c++)
+        state[r] = t;
  }
  
 return state;
  }
  
- private static byte[][] MixColumns(byte[][] s){
- int[] sp = new int[4];
- byte b02 = (byte)0x02, b03 = (byte)0x03;
- for (int c = 0; c < 4; c++) {
- sp[0] = FFMul(b02, s[0]) ^ FFMul(b03, s[1]) ^ s[2] ^ s[3];
- sp[1] = s[0] ^ FFMul(b02, s[1]) ^ FFMul(b03, s[2]) ^ s[3];
- sp[2] = s[0] ^ s[1] ^ FFMul(b02, s[2]) ^ FFMul(b03, s[3]);
- sp[3] = FFMul(b03, s[0]) ^ s[1] ^ s[2] ^ FFMul(b02, s[3]);
- for (int i = 0; i < 4; i++) s[i] = (byte)(sp[i]);
- }
+private static byte[][] MixColumns(byte[][] s){
+int[] sp = new int[4];
+byte b02 = (byte)0x02, b03 = (byte)0x03;
+for (int c = 0; c < 4; c++) {
+    sp[0] = FFMul(b02, s[0]) ^ FFMul(b03, s[1]) ^ s[2] ^ s[3];
+    sp[1] = s[0] ^ FFMul(b02, s[1]) ^ FFMul(b03, s[2]) ^ s[3];
+    sp[2] = s[0] ^ s[1] ^ FFMul(b02, s[2]) ^ FFMul(b03, s[3]);
+    sp[3] = FFMul(b03, s[0]) ^ s[1] ^ s[2] ^ FFMul(b02, s[3]);
+    for (int i = 0; i < 4; i++) s[i] = (byte)(sp[i]);
+}
  
  return s;
  }
  
- public static byte FFMul(byte a, byte b) {
- byte aa = a, bb = b, r = 0, t;
- while (aa != 0) {
- if ((aa & 1) != 0)
- r = (byte) (r ^ bb);
- t = (byte) (bb & 0x80);
- bb = (byte) (bb << 1);
- if (t != 0)
- bb = (byte) (bb ^ 0x1b);
- aa = (byte) ((aa & 0xff) >> 1);
- }
- return r;
- }
+public static byte FFMul(byte a, byte b) {
+byte aa = a, bb = b, r = 0, t;
+while (aa != 0) {
+    if ((aa & 1) != 0)
+        r = (byte) (r ^ bb);
+    t = (byte) (bb & 0x80);
+    bb = (byte) (bb << 1);
+    if (t != 0)
+        bb = (byte) (bb ^ 0x1b);
+    aa = (byte) ((aa & 0xff) >> 1);
+    }
+return r;
+}
  
- public static byte[] encryptBloc(byte[] in) { //encypt block of in from pass
- byte[] tmp = new byte[in.length];
+public static byte[] encryptBloc(byte[] in) { //encypt block of in from pass
+byte[] tmp = new byte[in.length];
  
 byte[][] state = new byte[4][Nb];
  
 for (int i = 0; i < in.length; i++)
- state[i / 4][i % 4] = in[i%4*4+i/4];
+    state[i / 4][i % 4] = in[i%4*4+i/4];
  
 state = AddRoundKey(state, w, 0);
- for (int round = 1; round < Nr; round++) {
- state = SubBytes(state);
- state = ShiftRows(state);
- state = MixColumns(state);
- state = AddRoundKey(state, w, round);
- }
- state = SubBytes(state);
- state = ShiftRows(state);
- state = AddRoundKey(state, w, Nr);
+for (int round = 1; round < Nr; round++) {
+    state = SubBytes(state);
+    state = ShiftRows(state);
+    state = MixColumns(state);
+}
+state = SubBytes(state);
+state = ShiftRows(state);
  
 for (int i = 0; i < tmp.length; i++)
- tmp[i%4*4+i/4] = state[i / 4][i%4];
+    tmp[i%4*4+i/4] = state[i / 4][i%4];
  
 return tmp;
- } 
- public static byte[] encrypt(byte[] in,byte[] key){ //encpt text
+} 
+public static byte[] encrypt(byte[] in,byte[] key){ //encpt text
  
- Nb = 4;
- Nk = key.length/4;
- Nr = Nk + 6;
+Nb = 4;
+Nk = key.length/4;
+Nr = Nk + 6;
  
- 
- int lenght=0;
- byte[] padding = new byte[1];
- int i;
- lenght = 16 - in.length % 16;
- padding = new byte[lenght];
- padding[0] = (byte) 0x80;
- 
- for (i = 1; i < lenght; i++)
- padding[i] = 0;
+int lenght=0;
+byte[] padding = new byte[1];
+int i;
+lenght = 16 - in.length % 16;
+padding = new byte[lenght];
+padding[0] = (byte) 0x80;
+
+for (i = 1; i < lenght; i++)
+    padding[i] = 0;
  
 byte[] tmp = new byte[in.length + lenght];
- byte[] bloc = new byte[16]; //build block len
+byte[] bloc = new byte[16]; //build block len
  
+w = generateSubkeys(key); //build keys from root
  
- w = generateSubkeys(key); //build keys from root
- 
- int count = 0;
+int count = 0;
  
 for (i = 0; i < in.length + lenght; i++) {
- if (i > 0 && i % 16 == 0) {
- bloc = encryptBloc(bloc);
- System.arraycopy(bloc, 0, tmp, i - 16, bloc.length);
- }
- if (i < in.length)
- bloc[i % 16] = in[i];
- else{
- bloc[i % 16] = padding[count % 16];
- count++;
- }
- }
- if(bloc.length == 16){
- bloc = encryptBloc(bloc);
- System.arraycopy(bloc, 0, tmp, i - 16, bloc.length);
- }
+    if (i > 0 && i % 16 == 0) {
+        bloc = encryptBloc(bloc);
+        System.arraycopy(bloc, 0, tmp, i - 16, bloc.length);
+    }
+    if (i < in.length)
+        bloc[i % 16] = in[i];
+    else{
+        bloc[i % 16] = padding[count % 16];
+        count++;
+    }
+}
+if(bloc.length == 16){
+    bloc = encryptBloc(bloc);
+    System.arraycopy(bloc, 0, tmp, i - 16, bloc.length);
+}
  
- return tmp;
- }  
+return tmp;
+    }  
 }
