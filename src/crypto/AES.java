@@ -178,10 +178,12 @@ for (int round = 1; round < Nr; round++) {
     state = SubBytes(state);
     state = ShiftRows(state);
     state = MixColumns(state);
+    System.out.println(state);
 }
 state = SubBytes(state);
 state = ShiftRows(state);
- 
+System.out.println(state);
+
 for (int i = 0; i < tmp.length; i++)
     tmp[i%4*4+i/4] = state[i / 4][i%4];
  
