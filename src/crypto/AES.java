@@ -1,5 +1,4 @@
 package crypto;
-import crypto.Encrypt;
 
 public class AES {
  private static int Nb, Nk, Nr;
@@ -47,70 +46,69 @@ public class AES {
  0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
  0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb };
  
- private static byte[] xor_func(byte[] a, byte[] b) {
- byte[] out = new byte[a.length];
- for (int i = 0; i < a.length; i++) {
- out[i] = (byte) (a[i] ^ b[i]);
- }
- return out;
- 
+private static byte[] xor_func(byte[] a, byte[] b) {
+    byte[] out = new byte[a.length];
+    for (int i = 0; i < a.length; i++) {
+       out[i] = (byte) (a[i] ^ b[i]);
+    }
+return out; 
 }
- private static byte[][] generateSubkeys(byte[] key) {
- byte[][] tmp = new byte[Nb * (Nr + 1)][4];
+
+private static byte[][] generateSubkeys(byte[] key) {
+byte[][] tmp = new byte[Nb * (Nr + 1)][4];
  
 int i = 0;
- while (i < Nk) {
- 
-tmp[i][0] = key[i * 4];
- tmp[i][1] = key[i * 4 + 1];
- tmp[i][2] = key[i * 4 + 2];
- tmp[i][3] = key[i * 4 + 3];
- i++;
- }
- i = Nk;
- while (i < Nb * (Nr + 1)) {
- byte[] temp = new byte[4];
- for(int k = 0;k<4;k++)
- temp[k] = tmp[i-1][k];
- if (i % Nk == 0) {
- temp = SubWord(rotateWord(temp)); 
- temp[0] = (byte) (temp[0] ^ (Rcon[i / Nk] & 0xff));
- } else if (Nk > 6 && i % Nk == 4) {
- temp = SubWord(temp);
- }
- tmp[i] = xor_func(tmp[i - Nk], temp);
- i++;
- }
+while (i < Nk) { 
+    tmp[i][0] = key[i * 4];
+    tmp[i][1] = key[i * 4 + 1];
+    tmp[i][2] = key[i * 4 + 2];
+    tmp[i][3] = key[i * 4 + 3];
+    i++;
+}
+i = Nk;
+while (i < Nb * (Nr + 1)) {
+    byte[] temp = new byte[4];
+    for(int k = 0;k<4;k++)
+        temp[k] = tmp[i-1][k];
+    if (i % Nk == 0) {
+        temp = SubWord(rotateWord(temp)); 
+        temp[0] = (byte) (temp[0] ^ (Rcon[i / Nk] & 0xff));
+    } else if (Nk > 6 && i % Nk == 4) {
+        temp = SubWord(temp);
+        }
+    tmp[i] = xor_func(tmp[i - Nk], temp);
+    i++;
+}
  
 return tmp;
- }
+}
  
- private static byte[] SubWord(byte[] in) { 
- byte[] tmp = new byte[in.length];
+private static byte[] SubWord(byte[] in) { 
+byte[] tmp = new byte[in.length];
  
 for (int i = 0; i < tmp.length; i++)
- tmp[i] = (byte) (sbox[in[i] & 0x000000ff] & 0xff);
+    tmp[i] = (byte) (sbox[in[i] & 0x000000ff] & 0xff);
  
 return tmp;
- }
+}
  
- private static byte[] rotateWord(byte[] input) { //rotating word for subbyte
- byte[] tmp = new byte[input.length];
- tmp[0] = input[1];
- tmp[1] = input[2];
- tmp[2] = input[3];
- tmp[3] = input[0];
+private static byte[] rotateWord(byte[] input) { //rotating word for subbyte
+byte[] tmp = new byte[input.length];
+tmp[0] = input[1];
+tmp[1] = input[2];
+tmp[2] = input[3];
+tmp[3] = input[0];
  
 return tmp;
- }
+}
  
- private static byte[][] AddRoundKey(byte[][] state, byte[][] w, int round) {
+private static byte[][] AddRoundKey(byte[][] state, byte[][] w, int round) {
  
 byte[][] tmp = new byte[state.length][state[0].length];
  
 for (int c = 0; c < Nb; c++) {
- for (int l = 0; l < 4; l++)
- tmp[l] = (byte[])(state[l] ^ w[round * Nb + c][l]);
+    for (int l = 0; l < 4; l++)
+        tmp[l] = (byte)(state[l] ^ w[round * Nb + c][l]);
  }
  
 return tmp;
@@ -137,31 +135,6 @@ byte[] t = new byte[4];
  }
  
 return state;
- }
- 
- private static byte[][] InvShiftRows(byte[][] state) {
- byte[] t = new byte[4];
- for (int r = 1; r < 4; r++) {
- for (int c = 0; c < Nb; c++)
- t[(c + r)%Nb] = state[r];
- for (int c = 0; c < Nb; c++)
- state[r] = t;
- }
- return state;
- }
- 
- private static byte[][] InvMixColumns(byte[][] s){
- int[] sp = new int[4];
- byte b02 = (byte)0x0e, b03 = (byte)0x0b, b04 = (byte)0x0d, b05 = (byte)0x09;
- for (int c = 0; c < 4; c++) {
- sp[0] = FFMul(b02, s[0]) ^ FFMul(b03, s[1]) ^ FFMul(b04,s[2]) ^ FFMul(b05,s[3]);
- sp[1] = FFMul(b05, s[0]) ^ FFMul(b02, s[1]) ^ FFMul(b03,s[2]) ^ FFMul(b04,s[3]);
- sp[2] = FFMul(b04, s[0]) ^ FFMul(b05, s[1]) ^ FFMul(b02,s[2]) ^ FFMul(b03,s[3]);
- sp[3] = FFMul(b03, s[0]) ^ FFMul(b04, s[1]) ^ FFMul(b05,s[2]) ^ FFMul(b02,s[3]);
- for (int i = 0; i < 4; i++) s[i] = (byte)(sp[i]);
- }
- 
- return s;
  }
  
  private static byte[][] MixColumns(byte[][] s){

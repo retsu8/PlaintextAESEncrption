@@ -5,6 +5,8 @@
  */
 package crypto;
 import crypto.AES;
+import java.io.UTFDataFormatException;
+import java.nio.charset.Charset;
 
 /**
  *
